@@ -18,9 +18,9 @@ jobs:
 
     - name: ncnn
       run: |
-        wget -q https://github.com/Tencent/ncnn/releases/download/20250503/ncnn-20250503-webassembly.zip
+        wget -q https://github.com/Tencent/ncnn/releases/download/20250428/ncnn-20250428-webassembly.
         
-        unzip -q ncnn-20250503-webassembly.zip
+        unzip -q ncnn-20250428-webassembly.
 
     - name: build
       run: |
