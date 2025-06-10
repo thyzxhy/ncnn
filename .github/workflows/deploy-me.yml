@@ -38,11 +38,11 @@ jobs:
     - name: collect-deploy-files
       run: |
         mkdir deploy && cd deploy
-        cp ../build/*.data .
-        cp ../build/*.js .
-        cp ../build/*.wasm .
-        cp ../*.html .
-        cp ../*.js .
+        cp /home/runner/work/ncnn/ncnn/build/*.data .
+        cp /home/runner/work/ncnn/ncnn/build/*.js .
+        cp /home/runner/work/ncnn/ncnn/build/*.wasm .
+        cp /home/runner/work/ncnn/ncnn/build/*.html .
+        cp /home/runner/work/ncnn/ncnn/build/*.js .
 
     - name: Deploy
       # 因为构建之后，需要把代码上传到服务器上，所以需要连接到ssh，并且做一个拷贝操作.
