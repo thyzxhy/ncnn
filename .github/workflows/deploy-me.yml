@@ -1,0 +1,59 @@
+name: build-and-deploy
+on: [push, pull_request]
+
+env:
+  EMSCRIPTEN_VERSION: 3.1.28
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: emsdk
+      run: |
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install $EMSCRIPTEN_VERSION
+        ./emsdk activate $EMSCRIPTEN_VERSION
+
+    - name: ncnn
+      run: |
+        wget -q https://github.com/Tencent/ncnn/releases/download/20250503/ncnn-20250503-webassembly.zip
+        
+        unzip -q ncnn-20250503-webassembly.zip
+
+    - name: build
+      run: |
+        source emsdk/emsdk_env.sh
+        mkdir build && cd build
+        cmake -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DWASM_FEATURE=basic ..
+        make -j4
+        cmake -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DWASM_FEATURE=simd ..
+        make -j4
+        cmake -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DWASM_FEATURE=threads ..
+        make -j4
+        cmake -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DWASM_FEATURE=simd-threads ..
+        make -j4
+
+    - name: collect-deploy-files
+      run: |
+        mkdir deploy && cd deploy
+        cp ../build/*.data .
+        cp ../build/*.js .
+        cp ../build/*.wasm .
+        cp ../*.html .
+        cp ../*.js .
+
+    - name: Deploy
+      # 因为构建之后，需要把代码上传到服务器上，所以需要连接到ssh，并且做一个拷贝操作.
+      uses: cross-the-world/scp-pipeline@master
+      env:
+        WELCOME: "ssh scp ssh pipelines"
+        LASTSSH: "Doing something after copying"
+      with:
+        host: "14.103.154.119"
+        user: "root"
+        pass: "Gaoci886."
+        connect_timeout: 10s
+        local: './deploy/*'
+        remote: /root/deploy
